@@ -9,129 +9,115 @@
     <script src="/js/jquery-ui.min.js"></script>
     <script src="/js/farbtastic.js"></script>
     <script src="https://cdn.socket.io/socket.io-1.3.5.js"></script>
-    <script>
-        function Point(event, target){
-            this.x = event.pageX - $(target).position().left;
-            this.y = event.pageY - $(target).position().top;
+    <style>
+        html, body {
+
+            overflow: hidden;
         }
-    </script>
+    </style>
     <script>
-//        var target = window; // this can be any scrollable element
-//        var last_y = 0;
-//        target.addEventListener('touchmove', function(e){
-//            var scrolly = target.pageYOffset || target.scrollTop || 0;
-//            var direction = e.changedTouches[0].pageY > last_y ? 1 : -1;
-//            if(direction>0 && scrolly===0){
-//                e.preventDefault();
-//            }
-//            last_y = e.changedTouches[0].pageY;
-//        });
-    </script>
-    <script>
+        //http://codetheory.in/html5-canvas-drawing-lines-with-smooth-edges/
+
         $(document).ready(function(){
 
-            function getPoint(e){
+            function Point(e, target){
 
-                return {pageX: e.originalEvent.touches[0].pageX,
-                    pageY: e.originalEvent.touches[0].pageY};
-            }
-
+                return {x: typeof e.offsetX !== 'undefined' ?
+                            e.offsetX : (e.originalEvent.touches[0].pageX - $(target).position().left),
+                        y:typeof e.offsetY !== 'undefined' ?
+                            e.offsetY : e.originalEvent.touches[0].pageY - $(target).position().top
+                       };
+            } //end Point
 
             var canvas = document.getElementById('canvas');
             var context = canvas.getContext('2d');
 
             var width = 5;
             var color = '#000000';
-            var isDown = false;
-            var newPoint, oldPoint;
             $('#penColor').css({background: color});
 
-            $('#canvas').mousedown(function(event){
-                isDown = true;
+            var ppts = []; //현재 사용자의 마우스 혹은 터치 이벤트에 대한 points
+            var other_ppts = [];
 
-                oldPoint = new Point(event, this);
-            })
+            var mouse = { x:0, y:0 };
+            $('#canvas').bind("mousemove touchmove", function(e){
+                mouse = Point(e, this);
 
-            $('#canvas').mouseup( function(){
-                isDown = false
-            }).mousemove( function(event){
-                if(isDown){
-                    newPoint = new Point(event, this);
-
-                    var data = {
-                        width : width,
-                        color : color,
-                        x1: oldPoint.x,
-                        y1: oldPoint.y,
-                        x2: newPoint.x,
-                        y2: newPoint.y
-                    };
-
-                    oldPoint = newPoint;
-
-                    context.lineWidth = data.width;
-                    context.strokeStyle = data.color;
-                    context.lineCap = 'round';
-                    context.beginPath();
-                    context.moveTo(data.x1, data.y1);
-                    context.lineTo(data.x2, data.y2);
-                    context.stroke();
-
-                    socket.emit('draw', data);
-                }
             });
 
-            $('#canvas').bind("touchstart", function(e){
-                isDown = true;
+            context.lineWidth = width;
+            context.strokeStyle = color;
+            context.lineJoin = context.lineCap = 'round';
+            context.shadowBlur = 2;
+            context.shadowColor = color;
 
-                var event = getPoint(e);
+            $('#canvas').bind("mousedown touchstart", function(e) {
+                $('#canvas').bind("mousemove touchmove", onPaint);
+                mouse = Point(e, this);
 
-                oldPoint = new Point(event, this);
-            }).bind('touchend', function(){
-                isDown = false;
-            }).bind('touchmove', function(e){
-                if(isDown){
-                    var event = getPoint(e);
+                ppts.push({x: mouse.x, y: mouse.y});
 
-                    newPoint = new Point(event, this);
+                socket.emit('draw', {x: mouse.x, y: mouse.y, color: color, width: width});
 
-                    var data = {
-                        width : width,
-                        color : color,
-                        x1: oldPoint.x,
-                        y1: oldPoint.y,
-                        x2: newPoint.x,
-                        y2: newPoint.y
-                    };
-
-                    oldPoint = newPoint;
-
-                    context.lineWidth = data.width;
-                    context.strokeStyle = data.color;
-                    context.lineCap = 'round';
-                    context.beginPath();
-                    context.moveTo(data.x1, data.y1);
-                    context.lineTo(data.x2, data.y2);
-                    context.stroke();
-
-                    socket.emit('draw', data);
-                }
+                onPaint();
             });
+
+            $('#canvas').bind("mouseup touchend", function(){
+                $('#canvas').unbind("mousemove touchmove", onPaint);
+
+                ppts = [];
+                socket.emit('flush');
+            });
+
+            $('#canvas').bind('touchcancel', function(){
+                alert('shit');
+            });
+
+            function onPaint(data){
+                if( typeof data == 'undefined') return;
+
+                var points;
+
+                if( typeof data.originalEvent != 'undefined'){
+                    data.preventDefault(); //Touch에서 그림그리는 중임에도 불구하고 Scroll되는것을 막는다.
+
+                    points = ppts;
+                    points.push({x: mouse.x, y: mouse.y});
+                    socket.emit('draw', {x: mouse.x, y: mouse.y, color: color, width: width});
+                }else{
+                    points = other_ppts;
+                    points.push({x: data.x, y: data.y});
+                }
+
+                if (points.length < 3)  return;
+
+                context.beginPath();
+                context.moveTo(points[0].x, points[0].y);
+
+                for (var i = 1; i < points.length - 1; i++) {
+                    var c = (points[i].x + points[i + 1].x) / 2;
+                    var d = (points[i].y + points[i + 1].y) / 2;
+
+                    context.quadraticCurveTo(points[i].x, points[i].y, c, d);
+                }
+
+                context.lineWidth = typeof data.width == 'undefined' ? width : data.width ;
+                context.strokeStyle = context.fillStyle = context.shadowColor =
+                        typeof data.color == 'undefined' ? color : data.color ;
+                context.stroke();
+
+            }
 
             var socket = io.connect( window.location.host );
 
             socket.emit('join', '<%= room %>');
 
             socket.on('line', function(data){
-                console.log('fuck');
-                context.lineWidth = data.width;
-                context.strokeStyle = data.color;
-                context.lineCap = 'round';
-                context.lineJoin = 'round';
-                context.beginPath();
-                context.moveTo(data.x1, data.y1);
-                context.lineTo(data.x2, data.y2);
-                context.stroke();
+                onPaint(data);
+            });
+
+            socket.on('flush', function(){
+                other_ppts = [];
             });
 
             $('#colorpicker').farbtastic(function(data){
@@ -149,14 +135,15 @@
 
 
         });
+
     </script>
 </head>
 <!--get rid of "pull to refresh" -->
-<body style="overflow-y: hidden">
+<body>
     <table border="10">
         <tr>
             <td rowspan="3">
-                <canvas id="canvas" width="600" height="400" style="cursor: crosshair;"></canvas>
+                <canvas id="canvas" width="600" height="400" style="cursor: crosshair; overflow-y: hidden"></canvas>
             </td>
             <td height="200">
                 <div id="colorpicker"></div>

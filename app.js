@@ -55,6 +55,10 @@ io.sockets.on('connection', function(socket){
         //io.to(socket.room).emit('line', data);
     });
 
+    socket.on('flush', function(){
+        socket.to(socket.room).emit('flush');
+    });
+
     socket.on('create room', function(data){
         io.sockets.emit('create room', data.toString() );
     });
