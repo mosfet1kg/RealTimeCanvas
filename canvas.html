@@ -16,7 +16,27 @@
         }
     </script>
     <script>
+//        var target = window; // this can be any scrollable element
+//        var last_y = 0;
+//        target.addEventListener('touchmove', function(e){
+//            var scrolly = target.pageYOffset || target.scrollTop || 0;
+//            var direction = e.changedTouches[0].pageY > last_y ? 1 : -1;
+//            if(direction>0 && scrolly===0){
+//                e.preventDefault();
+//            }
+//            last_y = e.changedTouches[0].pageY;
+//        });
+    </script>
+    <script>
         $(document).ready(function(){
+
+            function getPoint(e){
+
+                return {pageX: e.originalEvent.touches[0].pageX,
+                    pageY: e.originalEvent.touches[0].pageY};
+            }
+
+
             var canvas = document.getElementById('canvas');
             var context = canvas.getContext('2d');
 
@@ -30,34 +50,84 @@
                 isDown = true;
 
                 oldPoint = new Point(event, this);
-            }).mouseup( function(){
+            })
+
+            $('#canvas').mouseup( function(){
                 isDown = false
             }).mousemove( function(event){
                 if(isDown){
                     newPoint = new Point(event, this);
-                    socket.emit('draw', {
+
+                    var data = {
                         width : width,
                         color : color,
                         x1: oldPoint.x,
                         y1: oldPoint.y,
                         x2: newPoint.x,
                         y2: newPoint.y
-                    });
+                    };
 
                     oldPoint = newPoint;
+
+                    context.lineWidth = data.width;
+                    context.strokeStyle = data.color;
+                    context.lineCap = 'round';
+                    context.beginPath();
+                    context.moveTo(data.x1, data.y1);
+                    context.lineTo(data.x2, data.y2);
+                    context.stroke();
+
+                    socket.emit('draw', data);
                 }
             });
 
+            $('#canvas').bind("touchstart", function(e){
+                isDown = true;
+
+                var event = getPoint(e);
+
+                oldPoint = new Point(event, this);
+            }).bind('touchend', function(){
+                isDown = false;
+            }).bind('touchmove', function(e){
+                if(isDown){
+                    var event = getPoint(e);
+
+                    newPoint = new Point(event, this);
+
+                    var data = {
+                        width : width,
+                        color : color,
+                        x1: oldPoint.x,
+                        y1: oldPoint.y,
+                        x2: newPoint.x,
+                        y2: newPoint.y
+                    };
+
+                    oldPoint = newPoint;
+
+                    context.lineWidth = data.width;
+                    context.strokeStyle = data.color;
+                    context.lineCap = 'round';
+                    context.beginPath();
+                    context.moveTo(data.x1, data.y1);
+                    context.lineTo(data.x2, data.y2);
+                    context.stroke();
+
+                    socket.emit('draw', data);
+                }
+            });
 
             var socket = io.connect( window.location.host );
 
             socket.emit('join', '<%= room %>');
 
             socket.on('line', function(data){
-
+                console.log('fuck');
                 context.lineWidth = data.width;
                 context.strokeStyle = data.color;
                 context.lineCap = 'round';
+                context.lineJoin = 'round';
                 context.beginPath();
                 context.moveTo(data.x1, data.y1);
                 context.lineTo(data.x2, data.y2);
@@ -76,15 +146,17 @@
                     width = ui.value;
                 }
             });
+
+
         });
     </script>
 </head>
-<body>
-
+<!--get rid of "pull to refresh" -->
+<body style="overflow-y: hidden">
     <table border="10">
         <tr>
             <td rowspan="3">
-                <canvas id="canvas" width="600" height="400" style="cursor: crosshair"></canvas>
+                <canvas id="canvas" width="600" height="400" style="cursor: crosshair;"></canvas>
             </td>
             <td height="200">
                 <div id="colorpicker"></div>
