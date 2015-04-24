@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <script src="//code.jquery.com/jquery-1.11.2.min.js"></script>
+</head>
+<body>
+    <div id="shit"></div>
+</body>
+<script>
+    $('#shit').on('click', 'input', function(){
+        console.log('fuckyou');
+    });
+
+    $('<input type="button" value="Click me" />').appendTo('#shit');
+
+    $.each(['fuck', 'you', 'man'], function(index, data){
+        console.log(index, data);
+        console.log(this + 'hello');
+    });
+
+//    var __slice = Array.prototype.slice;
+//    (function($) {
+//        var Sketch;
+//        $.fn.sketch = function () {
+//            if(arguments.length<3){
+//                $.error('fuck you man');
+//            }
+//            $(this).html('fuckyou');
+//            console.log('fuck');
+//        };
+//
+//    })(jQuery);
+//
+//    $(function(){
+//        (function shit() {
+//
+//            var fuck = this.data('fuck');
+//            console.log(fuck);
+//        })();
+//        $('#shit').data("fuckyouman", {first:15, last:'pizza'});
+//        $('#shit').data("suckyouman", {first:123123, last:'123123'});
+//        console.log($('#shit').data());
+//        console.log($("#shit").data("fuckyouman").first);
+//        console.log($("#shit").data("fuckyouman").last);
+//        console.log($("#shit").data("suckyouman").last);
+//
+//
+//        console.log($('#shit').get(0));
+//        console.log($('#shit').get(-1));
+//        console.log('shit');
+//    });
+</script>
+<script>
+//    $('#shit').sketch();
+</script>
+</html>

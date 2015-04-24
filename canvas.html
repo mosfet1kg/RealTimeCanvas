@@ -54,11 +54,8 @@
             $('#canvas').bind("mousedown touchstart", function(e) {
                 $('#canvas').bind("mousemove touchmove", onPaint);
                 mouse = Point(e, this);
-
                 ppts.push({x: mouse.x, y: mouse.y});
-
                 socket.emit('draw', {x: mouse.x, y: mouse.y, color: color, width: width});
-
                 onPaint();
             });
 
@@ -133,6 +130,9 @@
                 }
             });
 
+            $('#clear').click(function(){
+                context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+            })
 
         });
 
@@ -158,5 +158,6 @@
             <td id='penColor'></td>
         </tr>
     </table>
+    <input type="button" value="clear" id="clear">
 </body>
 </html>

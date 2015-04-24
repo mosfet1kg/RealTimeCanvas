@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <script src="//code.jquery.com/jquery-1.11.2.min.js"></script>
+</head>
+<body>
+    <!--<nav class="controls">-->
+        <!--<a href="#" class="button" onClick="Stopwatch.start();">Start</a>-->
+        <!--<a href="#" class="button" onClick="Stopwatch.stop();">Stop</a>-->
+        <!--<a href="#" class="button" onClick="Stopwatch.restart();">Restart</a>-->
+    <!--</nav>-->
+    <div id="stopwatch" style="width:500px; height:500px; border:1px solid black"></div>
+    <input type="button" id="start" value="start">
+    <input type="button" id="stop" value="stop">
+    <input type="button" id="reset" value="reset">
+
+</body>
+<script src="/js/stopwatch.js"></script>
+<script>
+
+    $('#stopwatch').stopwatch();
+    $('#stopwatch').stopwatch();
+//    $('#stopwatch').stopwatch('init');
+//
+//    $('#start').click(function(){
+//        $('#stopwatch').stopwatch('start');
+//    });
+//
+//    $('#stop').click(function(){
+//        $('#stopwatch').stopwatch('stop');
+//    });
+//
+//    $('#reset').click(function(){
+//        $('#stopwatch').stopwatch('init');
+//    });
+
+</script>
+<script>
+//        var s;
+//        return {
+//            settings: {
+//                stop: 0,
+//                sw: $('#stopwatch'),
+//                mills: 0,
+//                secs: 0,
+//                mins: 0,
+//                times: ["00:00:00"]
+//            },
+//            init: function() {
+//                s = this.settings;
+//                setInterval(this.timer, 1);
+//            },
+//            restart: function() {
+//                s.mills = 0;
+//                s.secs = 0;
+//                s.mins = 0;
+//                this.start();
+//            },
+//            start: function() {
+//                s.stop = 0;
+//            },
+//            stop: function() {
+//                s.stop = 1;
+//            },
+//            timer: function() {
+//                if (s.stop === 0) {
+//                    if (s.mills === 100) {
+//                        s.secs++;
+//                        s.mills = 0;
+//                    }
+//                    if (s.secs === 60) {
+//                        s.mins++;
+//                        s.secs = 0;
+//                    }
+//                    s.sw.html(("0" + s.mins).slice(-2) + ":"
+//                            + ("0" + s.secs).slice(-2) + ":"
+//                            + ("0" + s.mills).slice(-2));
+//                    s.mills++;
+//                }
+//            }
+//        };
+//    })();
+//    Stopwatch.init();
+</script>
+</html>
